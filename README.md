@@ -1,6 +1,7 @@
 # ClinikAI OS – Mobile App
 
-ClinikAI OS is a patient-focused healthcare application designed to make it easier for patients to manage appointments, healthcare information, medical records, and their interaction with clinics.
+
+
 
 This repository contains the **ClinikAI OS mobile application** built with Expo and React Native.
 
