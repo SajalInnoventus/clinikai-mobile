@@ -1,56 +1,188 @@
-# Welcome to your Expo app 👋
+# ClinikAI OS – Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+ClinikAI OS is a patient-focused healthcare application designed to make it easier for patients to manage appointments, healthcare information, medical records, and their interaction with clinics.
 
-## Get started
+This repository contains the **ClinikAI OS mobile application** built with Expo and React Native.
 
-1. Install dependencies
+> **Current status:** Proof of Concept (POC) / early development  
+> The application is actively being developed, so some screens and features are not connected to the backend yet.
 
-   ```bash
-   npm install
-   ```
+## 1. What you need
 
-2. Start the app
+Install:
 
-   ```bash
-   npx expo start
-   ```
+- Node.js 20 or later
+- npm
+- Git
+- VS Code (recommended)
 
-In the output, you'll find options to open the app in a
+Check your versions:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```powershell
+node -v
+npm -v
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+The current development environment uses:
 
-### Other setup steps
+```text
+Node.js v20.20.2
+npm 10.8.2
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## 2. Get the project
 
-## Learn more
+If using Git:
 
-To learn more about developing your project with Expo, look at the following resources:
+```powershell
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd clinikai-mobile
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+If the project is already on your computer, open the `clinikai-mobile` folder in VS Code.
 
-## Join the community
+## 3. Install dependencies
 
-Join our community of developers creating universal apps.
+Run from the project root:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```powershell
+npm install
+```
+
+## 4. Start ClinikAI OS
+
+```powershell
+npx expo start
+```
+
+Expo will show a QR code and terminal shortcuts.
+
+```text
+a  → Android
+w  → Web
+r  → Reload
+j  → Debugger
+```
+
+## 5. Run on Android
+
+### Physical Android phone
+
+1. Install Expo Go.
+2. Connect the phone and computer to the same Wi-Fi.
+3. Run:
+
+```powershell
+npx expo start
+```
+
+4. Scan the QR code with Expo Go.
+
+### Android Emulator
+
+Make sure an Android emulator is configured, then run:
+
+```powershell
+npx expo start
+```
+
+and press:
+
+```text
+a
+```
+
+## 6. Run on iOS
+
+You can test with Expo Go on an iPhone.
+
+For native iOS builds, a macOS environment is required.
+
+## 7. Run on the web
+
+Run:
+
+```powershell
+npx expo start
+```
+
+and press:
+
+```text
+w
+```
+
+The main target is Android/iOS; web is useful for quick UI testing.
+
+## 8. Current project structure
+
+```text
+clinikai-mobile/
+│
+├── assets/
+├── src/
+│   ├── app/
+│   │   ├── _layout.tsx
+│   │   ├── index.tsx
+│   │   └── (auth)/
+│   │       ├── register.tsx
+│   │       ├── login.tsx
+│   │       └── verify-otp.tsx
+│   │
+│   ├── features/
+│   │   └── authentication/
+│   │       ├── types/
+│   │       │   └── patient-registration.types.ts
+│   │       └── validation/
+│   │           └── patient-registration.validation.ts
+│   │
+│   └── ...
+│
+├── app.json
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+└── README.md
+```
+
+The structure will grow as ClinikAI OS features are implemented.
+
+## 9. Current application flow
+
+The current POC is being developed around:
+
+```text
+Welcome Screen
+      │
+      ├── Get Started
+      │       ↓
+      │   Registration
+      │       ↓
+      │   OTP Verification
+      │
+      └── Login
+```
+
+Patient registration currently includes:
+
+- Full name
+- Mobile number
+- Email address
+- Date of birth
+- Terms/consent acknowledgement
+
+Client-side validation is implemented. Backend authentication and OTP services will be connected later.
+
+## 10. TypeScript check
+
+Before committing work, run:
+
+```powershell
+npx tsc --noEmit
+```
+
+The goal is:
+
+```text
+Found 0 errors.
+```

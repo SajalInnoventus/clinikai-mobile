@@ -1,98 +1,177 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+export default function WelcomeScreen() {
+  const handleGetStarted = () => {
+    router.push("/register");
+  };
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+  const handleLogin = () => {
+    router.push("./login");
+  };
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.brandSection}>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>C</Text>
+          </View>
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+          <Text style={styles.brandName}>ClinikAI</Text>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+          <Text style={styles.tagline}>
+            Your health.{"\n"}
+            Organized. Connected.
+          </Text>
+        </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+        <View style={styles.messageSection}>
+          <Text style={styles.title}>
+            Your healthcare journey,{"\n"}
+            all in one place.
+          </Text>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+          <Text style={styles.description}>
+            Manage appointments, medical records, prescriptions and your
+            healthcare information with ClinikAI.
+          </Text>
+        </View>
+
+        <View style={styles.actionSection}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.primaryButton,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={handleGetStarted}
+          >
+            <Text style={styles.primaryButtonText}>Get Started</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.secondaryButton,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={handleLogin}
+          >
+            <Text style={styles.secondaryButtonText}>
+              Already have an account?{" "}
+              <Text style={styles.loginText}>Log in</Text>
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    backgroundColor: "#F8FAFC",
   },
-  safeArea: {
+
+  content: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+    justifyContent: "space-between",
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+
+  brandSection: {
+    alignItems: "center",
+    paddingTop: 40,
   },
+
+  logoContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    backgroundColor: "#1677FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+
+  logoText: {
+    color: "#FFFFFF",
+    fontSize: 38,
+    fontWeight: "700",
+  },
+
+  brandName: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 8,
+  },
+
+  tagline: {
+    textAlign: "center",
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#6B7280",
+  },
+
+  messageSection: {
+    alignItems: "center",
+    paddingHorizontal: 8,
+  },
+
   title: {
-    textAlign: 'center',
+    textAlign: "center",
+    fontSize: 28,
+    lineHeight: 36,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 16,
   },
-  code: {
-    textTransform: 'uppercase',
+
+  description: {
+    textAlign: "center",
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#6B7280",
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+
+  actionSection: {
+    gap: 14,
+  },
+
+  primaryButton: {
+    height: 54,
+    borderRadius: 14,
+    backgroundColor: "#1677FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  secondaryButton: {
+    minHeight: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  secondaryButtonText: {
+    color: "#6B7280",
+    fontSize: 14,
+  },
+
+  loginText: {
+    color: "#1677FF",
+    fontWeight: "600",
+  },
+
+  buttonPressed: {
+    opacity: 0.75,
   },
 });
