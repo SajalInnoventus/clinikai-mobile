@@ -1,14 +1,15 @@
+import DateTimePicker from "@expo/ui/community/datetime-picker";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -22,9 +23,35 @@ export default function PatientRegistrationScreen() {
     emailAddress: "",
     dateOfBirth: "",
   });
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
 
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const today = new Date();
+
+  const minimumDateOfBirth = new Date(
+    today.getFullYear() - 120,
+    today.getMonth(),
+    today.getDate(),
+  );
+
+  const defaultDateOfBirth = new Date(
+    today.getFullYear() - 18,
+    today.getMonth(),
+    today.getDate(),
+  );
+
+  const handleDateOfBirthChange = (date: Date) => {
+    const formattedDate = [
+      String(date.getDate()).padStart(2, "0"),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      date.getFullYear(),
+    ].join("/");
+
+    updateField("dateOfBirth", formattedDate);
+    setIsDatePickerVisible(false);
+  };
 
   const updateField = (field: keyof PatientRegistrationForm, value: string) => {
     setForm((currentForm) => ({
@@ -125,18 +152,116 @@ export default function PatientRegistrationScreen() {
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>Date of birth</Text>
 
-              <TextInput
-                value={form.dateOfBirth}
-                onChangeText={(value) => updateField("dateOfBirth", value)}
-                placeholder="DD/MM/YYYY"
-                placeholderTextColor="#9CA3AF"
-                keyboardType="numbers-and-punctuation"
-                maxLength={10}
-                style={styles.input}
-                accessibilityLabel="Date of birth"
-              />
-            </View>
+              {Platform.OS === "web" ? (
+                <input
+                  type="date"
+                  value={
+                    form.dateOfBirth
+                      ? (() => {
+                          const [day, month, year] = form.dateOfBirth
+                            .split("/")
+                            .map(Number);
 
+                          return `${year}-${String(month).padStart(2, "0")}-${String(
+                            day,
+                          ).padStart(2, "0")}`;
+                        })()
+                      : ""
+                  }
+                  min={`${minimumDateOfBirth.getFullYear()}-${String(
+                    minimumDateOfBirth.getMonth() + 1,
+                  ).padStart(2, "0")}-${String(
+                    minimumDateOfBirth.getDate(),
+                  ).padStart(2, "0")}`}
+                  max={`${today.getFullYear()}-${String(
+                    today.getMonth() + 1,
+                  ).padStart(
+                    2,
+                    "0",
+                  )}-${String(today.getDate()).padStart(2, "0")}`}
+                  onChange={(event) => {
+                    const value = event.target.value;
+
+                    if (!value) {
+                      updateField("dateOfBirth", "");
+                      return;
+                    }
+
+                    const [year, month, day] = value.split("-");
+
+                    updateField("dateOfBirth", `${day}/${month}/${year}`);
+                  }}
+                  style={{
+                    width: "100%",
+                    height: 52,
+                    borderWidth: 1,
+                    borderStyle: "solid",
+                    borderColor: "#D1D5DB",
+                    borderRadius: 12,
+                    backgroundColor: "#FFFFFF",
+                    paddingLeft: 16,
+                    paddingRight: 16,
+                    fontSize: 16,
+                    color: "#111827",
+                    boxSizing: "border-box",
+                  }}
+                  aria-label="Date of birth"
+                />
+              ) : (
+                <>
+                  <Pressable
+                    style={styles.input}
+                    onPress={() => setIsDatePickerVisible(true)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Select date of birth"
+                  >
+                    <Text
+                      style={
+                        form.dateOfBirth
+                          ? styles.dateOfBirthText
+                          : styles.dateOfBirthPlaceholder
+                      }
+                    >
+                      {form.dateOfBirth || "DD/MM/YYYY"}
+                    </Text>
+                  </Pressable>
+
+                  {isDatePickerVisible && (
+                    <DateTimePicker
+                      value={
+                        form.dateOfBirth
+                          ? (() => {
+                              const [day, month, year] = form.dateOfBirth
+                                .split("/")
+                                .map(Number);
+
+                              return new Date(year, month - 1, day);
+                            })()
+                          : defaultDateOfBirth
+                      }
+                      mode="date"
+                      presentation={
+                        Platform.OS === "android" ? "dialog" : "inline"
+                      }
+                      minimumDate={minimumDateOfBirth}
+                      maximumDate={today}
+                      onValueChange={(_, date) => {
+                        if (date) {
+                          handleDateOfBirthChange(date);
+
+                          if (Platform.OS === "android") {
+                            setIsDatePickerVisible(false);
+                          }
+                        }
+                      }}
+                      onDismiss={() => {
+                        setIsDatePickerVisible(false);
+                      }}
+                    />
+                  )}
+                </>
+              )}
+            </View>
             {errorMessage ? (
               <Text style={styles.errorMessage} accessibilityRole="alert">
                 {errorMessage}
@@ -263,6 +388,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 16,
     color: "#111827",
+  },
+  dateOfBirthText: {
+    fontSize: 16,
+    color: "#111827",
+    lineHeight: 52,
+  },
+
+  dateOfBirthPlaceholder: {
+    fontSize: 16,
+    color: "#9CA3AF",
+    lineHeight: 52,
   },
 
   errorMessage: {
