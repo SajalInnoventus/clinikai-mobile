@@ -44,6 +44,7 @@ function isValidDateOfBirth(dateOfBirth: string): boolean {
 
   const date = new Date(year, month - 1, day);
 
+  
   if (
     date.getFullYear() !== year ||
     date.getMonth() !== month - 1 ||
@@ -52,6 +53,7 @@ function isValidDateOfBirth(dateOfBirth: string): boolean {
     return false;
   }
 
+  
   const today = new Date();
 
   if (date > today) {
