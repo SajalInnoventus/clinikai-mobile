@@ -28,7 +28,6 @@ function isValidEmailAddress(emailAddress: string): boolean {
 function isValidDateOfBirth(dateOfBirth: string): boolean {
   const normalizedDate = dateOfBirth.trim();
 
-  // Require DD/MM/YYYY format.
   if (!/^\d{2}\/\d{2}\/\d{4}$/.test(normalizedDate)) {
     return false;
   }
@@ -45,7 +44,7 @@ function isValidDateOfBirth(dateOfBirth: string): boolean {
 
   const date = new Date(year, month - 1, day);
 
-  // Prevent invalid calendar dates such as 31/02/2020.
+  
   if (
     date.getFullYear() !== year ||
     date.getMonth() !== month - 1 ||
@@ -54,7 +53,7 @@ function isValidDateOfBirth(dateOfBirth: string): boolean {
     return false;
   }
 
-  // Date of birth cannot be in the future.
+  
   const today = new Date();
 
   if (date > today) {
