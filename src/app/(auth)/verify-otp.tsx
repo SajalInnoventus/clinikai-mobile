@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -15,6 +15,9 @@ const OTP_LENGTH = 6;
 const RESEND_COUNTDOWN_SECONDS = 30;
 
 export default function OtpVerificationScreen() {
+  const { mobileNumber } = useLocalSearchParams<{
+    mobileNumber?: string;
+  }>();
   const [otp, setOtp] = useState("");
   const [remainingSeconds, setRemainingSeconds] = useState(
     RESEND_COUNTDOWN_SECONDS,
@@ -51,7 +54,7 @@ export default function OtpVerificationScreen() {
       return;
     }
 
-    router.replace("/");
+    router.replace("/home");
   };
 
   const handleResendOtp = () => {
@@ -86,7 +89,8 @@ export default function OtpVerificationScreen() {
             <Text style={styles.title}>Verify your mobile number</Text>
 
             <Text style={styles.description}>
-              Enter the 6-digit verification code sent to your mobile number.
+              Enter the 6-digit verification code sent to{" "}
+              {mobileNumber ? `+91 ${mobileNumber}` : "your mobile number"}.
             </Text>
           </View>
 
@@ -234,6 +238,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 8,
+    alignSelf: "flex-start",
   },
 
   otpBox: {

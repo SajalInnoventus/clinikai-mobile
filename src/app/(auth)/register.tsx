@@ -73,10 +73,13 @@ export default function PatientRegistrationScreen() {
       );
       return;
     }
-
-    router.push("./verify-otp");
+    router.push({
+      pathname: "./verify-otp",
+      params: {
+        mobileNumber: form.mobileNumber,
+      },
+    });
   };
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
