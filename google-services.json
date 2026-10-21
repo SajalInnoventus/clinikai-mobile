@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "893084819575",
+    "project_id": "clinikai-os",
+    "storage_bucket": "clinikai-os.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:893084819575:android:29847f1e5f790b14eca672",
+        "android_client_info": {
+          "package_name": "com.sajal.clinikaimobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtL1jUSKw99tu1REH1VwAhHTxPUKO7EMk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

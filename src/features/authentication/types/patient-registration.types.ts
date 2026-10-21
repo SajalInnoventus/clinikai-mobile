@@ -1,14 +1,9 @@
 export interface PatientRegistrationForm {
   fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
   mobileNumber: string;
-  emailAddress: string;
   dateOfBirth: string;
-}
-
-export interface PatientRegistrationRequest {
-  fullName: string;
-  mobileNumber: string;
-  emailAddress?: string;
-  dateOfBirth: string;
-  termsAccepted: boolean;
+  gender: string;
 }

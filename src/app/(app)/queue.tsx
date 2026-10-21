@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Pressable,
@@ -19,7 +19,7 @@ interface QueueStatus {
   status: "waiting" | "almost-ready" | "called";
 }
 
-const INITIAL_QUEUE_STATUS: QueueStatus = {
+const DEFAULT_QUEUE_STATUS: QueueStatus = {
   tokenNumber: "A-24",
   currentlyServing: 20,
   patientToken: 24,
@@ -29,6 +29,28 @@ const INITIAL_QUEUE_STATUS: QueueStatus = {
 };
 
 export default function PatientQueueScreen() {
+  const { tokenNumber, patientToken } = useLocalSearchParams<{
+    tokenNumber?: string;
+    patientToken?: string;
+  }>();
+
+    const INITIAL_QUEUE_STATUS: QueueStatus = useMemo(() => {
+    if (tokenNumber && patientToken) {
+      const parsedPatientToken = Number(patientToken);
+      return {
+        ...DEFAULT_QUEUE_STATUS,
+        tokenNumber,
+        patientToken: parsedPatientToken,
+        estimatedWaitMinutes: Math.max(
+          (parsedPatientToken - DEFAULT_QUEUE_STATUS.currentlyServing - 1) *
+            DEFAULT_QUEUE_STATUS.averageConsultationMinutes,
+          0,
+        ),
+      };
+    }
+    return DEFAULT_QUEUE_STATUS;
+  }, [tokenNumber, patientToken]);
+
   const [queueStatus, setQueueStatus] = useState(INITIAL_QUEUE_STATUS);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -39,14 +61,14 @@ export default function PatientQueueScreen() {
 
   const queueProgress = useMemo(() => {
     const totalQueueDistance =
-      queueStatus.patientToken - INITIAL_QUEUE_STATUS.currentlyServing;
+      queueStatus.patientToken - DEFAULT_QUEUE_STATUS.currentlyServing;
 
     if (totalQueueDistance <= 0) {
       return 1;
     }
 
     const completed =
-      queueStatus.currentlyServing - INITIAL_QUEUE_STATUS.currentlyServing;
+      queueStatus.currentlyServing - DEFAULT_QUEUE_STATUS.currentlyServing;
 
     return Math.min(Math.max(completed / totalQueueDistance, 0), 1);
   }, [queueStatus.currentlyServing, queueStatus.patientToken]);

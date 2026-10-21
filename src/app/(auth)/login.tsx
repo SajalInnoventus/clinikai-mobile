@@ -1,260 +1,363 @@
-import { PatientLoginForm } from "@/features/authentication/types/patient-login.types";
-import { validatePatientLogin } from "@/features/authentication/validation/patient-login.validation";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function PatientLoginScreen() {
-  const [form, setForm] = useState<PatientLoginForm>({
-    mobileNumber: "",
-  });
-  const [errorMessage, SetErrorMessage] = useState("");
-  const UpdateMobileNumber = (value: string) => {
-    const sanitizedValue = value.replace(/\D/g, "").slice(0, 10);
+import {
+  detectLoginMode,
+  EmailLoginForm,
+} from "@/features/authentication/types/email-login.types";
+import { usePatient } from "@/features/patient/patient.context";
+import { radius, spacing } from "@/constants/clinikai-theme";
+import { useClinikaiTheme } from "@/features/theme/theme.context";
 
-    setForm((currentForm) => ({
-      ...currentForm,
-      mobileNumber: sanitizedValue,
-    }));
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (errorMessage) {
-      SetErrorMessage("");
+function validateLogin(form: EmailLoginForm) {
+  const identifier = form.identifier.trim();
+  const mode = detectLoginMode(identifier);
+
+  if (!identifier) {
+    return { isValid: false, message: "Enter your email or mobile number" };
+  }
+
+  if (mode === "mobile") {
+    if (identifier.length !== 10) {
+      return { isValid: false, message: "Enter a valid 10-digit mobile number" };
     }
-  };
-  const handleContinue = () => {
-    const validationResult = validatePatientLogin(form);
+    return { isValid: true, message: null };
+  }
+
+  if (!emailPattern.test(identifier)) {
+    return { isValid: false, message: "Enter a valid email address" };
+  }
+  if (form.password.length < 8) {
+    return { isValid: false, message: "Enter your password" };
+  }
+  return { isValid: true, message: null };
+}
+
+export default function PatientLoginScreen() {
+  const { palette } = useClinikaiTheme();
+  const { profile } = usePatient();
+  const { width } = useWindowDimensions();
+  const isWideLayout = width >= 900;
+
+  const [form, setForm] = useState<EmailLoginForm>({ identifier: "", password: "" });
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const loginMode = useMemo(() => detectLoginMode(form.identifier), [form.identifier]);
+
+  function updateField(field: keyof EmailLoginForm, value: string) {
+    setForm((currentForm) => ({ ...currentForm, [field]: value }));
+    if (errorMessage) {
+      setErrorMessage("");
+    }
+  }
+
+  function updateIdentifier(value: string) {
+    const nextValue = /^\d*$/.test(value) ? value.slice(0, 10) : value;
+    updateField("identifier", nextValue);
+  }
+
+  function handleContinue() {
+    const validationResult = validateLogin(form);
 
     if (!validationResult.isValid) {
-      SetErrorMessage(
-        validationResult.message ?? "Please check your Mobile Number",
-      );
+      setErrorMessage(validationResult.message ?? "We couldn't sign you in.");
       return;
     }
+
+    const mobileNumber =
+      loginMode === "mobile" ? form.identifier.trim() : profile.mobileNumber;
+
     router.push({
-  pathname: "./verify-otp",
-  params: {
-    mobileNumber: form.mobileNumber,
-  },
-});
+      pathname: "./verify-otp",
+      params: { mobileNumber },
+    });
+  }
+
+  function handleGoogleSignIn() {
+    setErrorMessage("Google sign-in isn't connected yet.");
+  }
+
+  function handleAppleSignIn() {
+    setErrorMessage("Apple sign-in isn't connected yet.");
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: palette.background }]}>
       <KeyboardAvoidingView
-        style={styles.keyboardContainer}
+        style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={styles.container}>
-          <Pressable
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            isWideLayout ? styles.rowLayout : styles.columnLayout,
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View
+            style={[
+              styles.imagePanel,
+              isWideLayout ? styles.imagePanelWide : styles.imagePanelNarrow,
+              { backgroundColor: palette.cardRaised },
+            ]}
           >
-            <Text style={styles.backButtonText}>‹</Text>
-          </Pressable>
-
-          <View style={styles.headerSection}>
-            <Text style={styles.brandName}> ClinikAI</Text>
-
-            <Text style={styles.title}>Welcome Back</Text>
-
-            <Text style={styles.description}>
-              Enter your Registered Mobile Numebr to Continue your ClinikAI
-              Profile.
-            </Text>
+            <Image
+              source={require("@/../assets/images/login-hero.jpg")}
+              style={styles.heroImage}
+              resizeMode="cover"
+            />
           </View>
 
-          <View style={styles.formSection}>
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Mobile Number</Text>
+          <View
+            style={[
+              styles.formPanel,
+              isWideLayout ? styles.formPanelWide : styles.formPanelNarrow,
+              { backgroundColor: palette.card, borderColor: palette.border },
+            ]}
+          >
+            <View style={styles.headerBlock}>
+              <View style={[styles.logoMark, { backgroundColor: palette.azure }]}>
+                <Text style={styles.logoGlyph}>C</Text>
+              </View>
 
-              <TextInput
-                value={form.mobileNumber}
-                onChangeText={UpdateMobileNumber}
-                placeholder="Enter Your Mobile Number"
-                placeholderTextColor="#9CA3AF"
-                keyboardType="phone-pad"
-                maxLength={10}
-                style={[styles.input, errorMessage && styles.inputError]}
-                returnKeyType="done"
-                onSubmitEditing={handleContinue}
-                accessibilityLabel="Mobile Number"
-                autoComplete="tel"
-              />
-
-              {errorMessage ? (
-                <Text style={styles.errorMessage} accessibilityRole="alert">
-                  {errorMessage}
-                </Text>
-              ) : null}
+              <Text style={[styles.title, { color: palette.textPrimary }]}>
+                ClinikAI welcomes you
+              </Text>
+              <Text style={[styles.subtitle, { color: palette.textSecondary }]}>
+                Sign in to continue
+              </Text>
             </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={[styles.label, { color: palette.textSecondary }]}>
+                Email or mobile number
+              </Text>
+              <TextInput
+                value={form.identifier}
+                onChangeText={updateIdentifier}
+                placeholder="name@example.com or 10-digit number"
+                placeholderTextColor={palette.textMuted}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType={loginMode === "mobile" ? "phone-pad" : "email-address"}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: palette.background,
+                    borderColor: palette.border,
+                    color: palette.textPrimary,
+                  },
+                ]}
+                accessibilityLabel="Email or mobile number"
+              />
+            </View>
+
+            {loginMode === "email" && (
+              <View style={styles.fieldGroup}>
+                <Text style={[styles.label, { color: palette.textSecondary }]}>Password</Text>
+                <View style={styles.passwordRow}>
+                  <TextInput
+                    value={form.password}
+                    onChangeText={(value) => updateField("password", value)}
+                    placeholder="Enter your password"
+                    placeholderTextColor={palette.textMuted}
+                    secureTextEntry={!isPasswordVisible}
+                    style={[
+                      styles.input,
+                      styles.passwordInput,
+                      {
+                        backgroundColor: palette.background,
+                        borderColor: palette.border,
+                        color: palette.textPrimary,
+                      },
+                    ]}
+                    accessibilityLabel="Password"
+                  />
+                  <Pressable
+                    onPress={() => setIsPasswordVisible((current) => !current)}
+                    style={styles.eyeButton}
+                    accessibilityRole="button"
+                    accessibilityLabel={isPasswordVisible ? "Hide password" : "Show password"}
+                  >
+                    <Ionicons
+                      name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
+                      size={18}
+                      color={palette.textMuted}
+                    />
+                  </Pressable>
+                </View>
+              </View>
+            )}
+
+            {errorMessage ? (
+              <Text style={[styles.errorMessage, { color: palette.critical }]} accessibilityRole="alert">
+                {errorMessage}
+              </Text>
+            ) : null}
+
+            {loginMode === "email" && (
+              <Pressable style={styles.forgotPasswordButton} 
+              onPress={() => router.push("./forgot-password")}
+              accessibilityRole="button">
+                <Text style={[styles.forgotPasswordText, { color: palette.azure }]}>
+                  Forgot password?
+                </Text>
+              </Pressable>
+            )}
 
             <Pressable
               style={({ pressed }) => [
-                styles.continueButton,
+                styles.primaryButton,
+                { backgroundColor: palette.azure },
                 pressed && styles.buttonPressed,
               ]}
               onPress={handleContinue}
               accessibilityRole="button"
-              accessibilityLabel="Continue Login"
+              accessibilityLabel={loginMode === "mobile" ? "Send OTP" : "Log in"}
             >
-              <Text style={styles.continueButtonText}>Continue</Text>
+              <Text style={[styles.primaryButtonText, { color: palette.onAzure }]}>
+                {loginMode === "mobile" ? "Send OTP" : "Log in"}
+              </Text>
             </Pressable>
-            <View style={styles.registrationContainer}>
-              <Text style={styles.registrationText}>
+
+            <View style={styles.dividerRow}>
+              <View style={[styles.dividerLine, { backgroundColor: palette.border }]} />
+              <Text style={[styles.dividerText, { color: palette.textMuted }]}>or</Text>
+              <View style={[styles.dividerLine, { backgroundColor: palette.border }]} />
+            </View>
+
+            <Pressable
+              style={[styles.socialButton, { borderColor: palette.border }]}
+              onPress={handleGoogleSignIn}
+              accessibilityRole="button"
+              accessibilityLabel="Continue with Google"
+            >
+              <AntDesign name="google" size={16} color={palette.textPrimary} />
+              <Text style={[styles.socialButtonText, { color: palette.textPrimary }]}>
+                Continue with Google
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.socialButton, { borderColor: palette.border }]}
+              onPress={handleAppleSignIn}
+              accessibilityRole="button"
+              accessibilityLabel="Continue with Apple"
+            >
+              <AntDesign name="apple" size={16} color={palette.textPrimary} />
+              <Text style={[styles.socialButtonText, { color: palette.textPrimary }]}>
+                Continue with Apple
+              </Text>
+            </Pressable>
+
+            <View style={styles.signUpRow}>
+              <Text style={[styles.signUpText, { color: palette.textSecondary }]}>
                 Don't have an account?
               </Text>
-
-              <Pressable
-                onPress={() => router.push("./register")}
-                accessibilityRole="button"
-                accessibilityLabel="Create a New Account"
-              >
-                <Text style={styles.registrationLink}> Create account</Text>
+              <Pressable onPress={() => router.push("./register")} accessibilityRole="button">
+                <Text style={[styles.signUpLink, { color: palette.azure }]}> Sign up</Text>
               </Pressable>
             </View>
+
+            <Text style={[styles.footerText, { color: palette.textMuted }]}>Privacy · Terms</Text>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
-
-  keyboardContainer: {
-    flex: 1,
-  },
-
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-  },
-
-  backButton: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-
-  backButtonText: {
-    fontSize: 34,
-    lineHeight: 36,
-    color: "#111827",
-  },
-
-  headerSection: {
-    marginBottom: 40,
-  },
-
-  brandName: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#1677FF",
-    marginBottom: 28,
-  },
-
-  title: {
-    fontSize: 28,
-    lineHeight: 36,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 12,
-  },
-
-  description: {
-    fontSize: 15,
-    lineHeight: 23,
-    color: "#6B7280",
-  },
-
-  formSection: {
-    gap: 20,
-  },
-
-  fieldContainer: {
-    gap: 8,
-  },
-
-  label: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: "600",
-    color: "#374151",
-  },
-
-  input: {
-    height: 52,
+  safeArea: { flex: 1 },
+  flex: { flex: 1 },
+  scrollContent: { flexGrow: 1, padding: spacing.lg, gap: spacing.lg },
+  rowLayout: { flexDirection: "row", alignItems: "stretch" },
+  columnLayout: { flexDirection: "column" },
+  imagePanel: { borderRadius: radius.xl, overflow: "hidden" },
+  imagePanelWide: { flex: 1, minHeight: 560 },
+  imagePanelNarrow: { height: 200 },
+  heroImage: { width: "100%", height: "100%" },
+  formPanel: {
+    borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: "#D1D5DB",
+    padding: spacing.xl + 6,
+    shadowColor: "#000000",
+    shadowOpacity: 0.06,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 4,
+  },
+  formPanelWide: { flex: 1 },
+  formPanelNarrow: { width: "100%" },
+  headerBlock: { alignItems: "center", marginBottom: spacing.lg },
+  logoMark: {
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: "#111827",
-  },
-
-  inputError: {
-    borderColor: "#DC2626",
-  },
-
-  errorMessage: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#DC2626",
-  },
-
-  continueButton: {
-    height: 54,
-    borderRadius: 14,
-    backgroundColor: "#1677FF",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 4,
+    marginBottom: spacing.lg,
   },
-
-  continueButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
+  logoGlyph: { color: "#FFFFFF", fontSize: 18, fontWeight: "700" },
+  title: { fontSize: 22, fontWeight: "700", marginBottom: 4, textAlign: "center" },
+  subtitle: { fontSize: 13, textAlign: "center" },
+  fieldGroup: { marginBottom: spacing.md },
+  label: { fontSize: 12, fontWeight: "600", marginBottom: spacing.xs + 2 },
+  input: {
+    height: 46,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    fontSize: 14,
   },
-
-  buttonPressed: {
-    opacity: 0.75,
+  passwordRow: { position: "relative", justifyContent: "center" },
+  passwordInput: { paddingRight: 42 },
+  eyeButton: { position: "absolute", right: 12 },
+  errorMessage: { fontSize: 12, marginBottom: spacing.sm },
+  forgotPasswordButton: { alignSelf: "flex-end", marginBottom: spacing.lg },
+  forgotPasswordText: { fontSize: 12, fontWeight: "600" },
+  primaryButton: {
+    height: 46,
+    borderRadius: radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.lg,
   },
-
-  registrationContainer: {
-    minHeight: 44,
+  primaryButtonText: { fontSize: 14, fontWeight: "600" },
+  buttonPressed: { opacity: 0.8 },
+  dividerRow: { flexDirection: "row", alignItems: "center", marginBottom: spacing.lg, gap: spacing.sm },
+  dividerLine: { flex: 1, height: 1 },
+  dividerText: { fontSize: 11 },
+  socialButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: spacing.sm,
+    height: 44,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    marginBottom: spacing.sm,
   },
-
-  registrationText: {
-    fontSize: 14,
-    color: "#6B7280",
-  },
-
-  registrationLink: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1677FF",
-  },
+  socialButtonText: { fontSize: 13, fontWeight: "500" },
+  signUpRow: { flexDirection: "row", justifyContent: "center", marginTop: spacing.md, marginBottom: spacing.sm },
+  signUpText: { fontSize: 12 },
+  signUpLink: { fontSize: 12, fontWeight: "600" },
+  footerText: { fontSize: 11, textAlign: "center" },
 });

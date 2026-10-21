@@ -11,13 +11,19 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { radius, spacing } from "@/constants/clinikai-theme";
+import { useClinikaiTheme } from "@/features/theme/theme.context";
+
 const OTP_LENGTH = 6;
 const RESEND_COUNTDOWN_SECONDS = 30;
 
 export default function OtpVerificationScreen() {
+  const { palette } = useClinikaiTheme();
+
   const { mobileNumber } = useLocalSearchParams<{
     mobileNumber?: string;
   }>();
+
   const [otp, setOtp] = useState("");
   const [remainingSeconds, setRemainingSeconds] = useState(
     RESEND_COUNTDOWN_SECONDS,
@@ -38,7 +44,7 @@ export default function OtpVerificationScreen() {
     return () => clearInterval(timer);
   }, [remainingSeconds]);
 
-  const handleOtpChange = (value: string) => {
+  function handleOtpChange(value: string) {
     const sanitizedOtp = value.replace(/\D/g, "").slice(0, OTP_LENGTH);
 
     setOtp(sanitizedOtp);
@@ -46,18 +52,17 @@ export default function OtpVerificationScreen() {
     if (errorMessage) {
       setErrorMessage("");
     }
-  };
+  }
 
-  const handleVerifyOtp = () => {
+  function handleVerifyOtp() {
     if (otp.length !== OTP_LENGTH) {
       setErrorMessage("Please enter the 6-digit OTP.");
       return;
     }
+    router.replace("/(app)");
+  }
 
-    router.replace("/home");
-  };
-
-  const handleResendOtp = () => {
+  function handleResendOtp() {
     if (remainingSeconds > 0) {
       return;
     }
@@ -65,54 +70,160 @@ export default function OtpVerificationScreen() {
     setOtp("");
     setErrorMessage("");
     setRemainingSeconds(RESEND_COUNTDOWN_SECONDS);
-  };
+
+      }
+
+  function handleBack() {
+    router.back();
+  }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        {
+          backgroundColor: palette.background,
+        },
+      ]}
+    >
       <KeyboardAvoidingView
         style={styles.keyboardContainer}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={styles.container}>
+        
           <Pressable
-            style={styles.backButton}
-            onPress={() => router.back()}
+            style={({ pressed }) => [
+              styles.backButton,
+              pressed && styles.pressed,
+            ]}
+            onPress={handleBack}
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <Text style={styles.backButtonText}>‹</Text>
+            <Text
+              style={[
+                styles.backButtonText,
+                {
+                  color: palette.textPrimary,
+                },
+              ]}
+            >
+              ‹
+            </Text>
           </Pressable>
 
+          
           <View style={styles.headerSection}>
-            <Text style={styles.brandName}>ClinikAI</Text>
+            <View
+              style={[
+                styles.logoMark,
+                {
+                  backgroundColor: palette.azure,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.logoText,
+                  {
+                    color: palette.onAzure,
+                  },
+                ]}
+              >
+                C
+              </Text>
+            </View>
 
-            <Text style={styles.title}>Verify your mobile number</Text>
+            <Text
+              style={[
+                styles.brandName,
+                {
+                  color: palette.textPrimary,
+                },
+              ]}
+            >
+              ClinikAI
+            </Text>
 
-            <Text style={styles.description}>
+            <Text
+              style={[
+                styles.title,
+                {
+                  color: palette.textPrimary,
+                },
+              ]}
+            >
+              Verify your mobile number
+            </Text>
+
+            <Text
+              style={[
+                styles.description,
+                {
+                  color: palette.textSecondary,
+                },
+              ]}
+            >
               Enter the 6-digit verification code sent to{" "}
               {mobileNumber ? `+91 ${mobileNumber}` : "your mobile number"}.
             </Text>
           </View>
 
+          {/* OTP Form */}
           <View style={styles.formSection}>
-            <Text style={styles.label}>Verification code</Text>
+            <Text
+              style={[
+                styles.label,
+                {
+                  color: palette.textSecondary,
+                },
+              ]}
+            >
+              Verification code
+            </Text>
 
             <Pressable
               onPress={() => otpInputRef.current?.focus()}
               style={styles.otpContainer}
+              accessibilityRole="button"
+              accessibilityLabel="Enter verification code"
             >
-              {Array.from({ length: OTP_LENGTH }).map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.otpBox,
-                    otp[index] && styles.otpBoxFilled,
-                    index === otp.length && styles.otpBoxActive,
-                  ]}
-                >
-                  <Text style={styles.otpText}>{otp[index] ?? ""}</Text>
-                </View>
-              ))}
+              {Array.from({ length: OTP_LENGTH }).map((_, index) => {
+                const isFilled = Boolean(otp[index]);
+                const isActive = index === otp.length;
+
+                return (
+                  <View
+                    key={index}
+                    style={[
+                      styles.otpBox,
+                      {
+                        backgroundColor: palette.card,
+                        borderColor: palette.border,
+                      },
+                      isFilled && {
+                        borderColor: palette.azure,
+                      },
+                      isActive && {
+                        borderColor: palette.azure,
+                        borderWidth: 2,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.otpText,
+                        {
+                          color: palette.textPrimary,
+                        },
+                      ]}
+                    >
+                      {otp[index] ?? ""}
+                    </Text>
+                  </View>
+                );
+              })}
             </Pressable>
 
             <TextInput
@@ -128,27 +239,57 @@ export default function OtpVerificationScreen() {
               accessibilityLabel="Enter verification code"
             />
 
+            {/* Error */}
             {errorMessage ? (
-              <Text style={styles.errorMessage} accessibilityRole="alert">
+              <Text
+                style={[
+                  styles.errorMessage,
+                  {
+                    color: palette.critical,
+                  },
+                ]}
+                accessibilityRole="alert"
+              >
                 {errorMessage}
               </Text>
             ) : null}
 
+            {/* Verify */}
             <Pressable
               style={({ pressed }) => [
                 styles.verifyButton,
+                {
+                  backgroundColor: palette.azure,
+                },
                 pressed && styles.buttonPressed,
               ]}
               onPress={handleVerifyOtp}
               accessibilityRole="button"
               accessibilityLabel="Verify OTP"
             >
-              <Text style={styles.verifyButtonText}>Verify</Text>
+              <Text
+                style={[
+                  styles.verifyButtonText,
+                  {
+                    color: palette.onAzure,
+                  },
+                ]}
+              >
+                Verify
+              </Text>
             </Pressable>
 
+            {/* Resend */}
             <View style={styles.resendContainer}>
               {remainingSeconds > 0 ? (
-                <Text style={styles.resendText}>
+                <Text
+                  style={[
+                    styles.resendText,
+                    {
+                      color: palette.textSecondary,
+                    },
+                  ]}
+                >
                   Resend code in {remainingSeconds}s
                 </Text>
               ) : (
@@ -157,10 +298,52 @@ export default function OtpVerificationScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Resend OTP"
                 >
-                  <Text style={styles.resendLink}>Resend code</Text>
+                  <Text
+                    style={[
+                      styles.resendLink,
+                      {
+                        color: palette.azure,
+                      },
+                    ]}
+                  >
+                    Resend code
+                  </Text>
                 </Pressable>
               )}
             </View>
+          </View>
+
+          <View
+            style={[
+              styles.securityCard,
+              {
+                backgroundColor: palette.cardRaised,
+                borderColor: palette.border,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.securityTitle,
+                {
+                  color: palette.textPrimary,
+                },
+              ]}
+            >
+              Your account is protected
+            </Text>
+
+            <Text
+              style={[
+                styles.securityText,
+                {
+                  color: palette.textSecondary,
+                },
+              ]}
+            >
+              Mobile verification helps keep your ClinikAI health records
+              secure and ensures that only you can access your account.
+            </Text>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -171,7 +354,6 @@ export default function OtpVerificationScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
   },
 
   keyboardContainer: {
@@ -180,8 +362,8 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 32,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
   },
 
   backButton: {
@@ -189,55 +371,66 @@ const styles = StyleSheet.create({
     height: 44,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 20,
+    marginBottom: spacing.lg,
   },
 
   backButtonText: {
-    fontSize: 34,
-    lineHeight: 36,
-    color: "#111827",
+    fontSize: 36,
+    lineHeight: 38,
+    fontWeight: "300",
   },
 
-  headerSection: {
-    marginBottom: 40,
+  logoMark: {
+    width: 42,
+    height: 42,
+    borderRadius: radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.sm,
+  },
+
+  logoText: {
+    fontSize: 18,
+    fontWeight: "700",
   },
 
   brandName: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: "700",
-    color: "#1677FF",
-    marginBottom: 28,
+    marginBottom: spacing.xl,
+  },
+
+  headerSection: {
+    marginBottom: spacing.xxl,
   },
 
   title: {
     fontSize: 28,
     lineHeight: 36,
     fontWeight: "700",
-    color: "#111827",
-    marginBottom: 12,
+    marginBottom: spacing.sm,
   },
 
   description: {
-    fontSize: 15,
-    lineHeight: 23,
-    color: "#6B7280",
+    fontSize: 14,
+    lineHeight: 22,
+    maxWidth: 520,
   },
 
   formSection: {
-    gap: 16,
+    gap: spacing.md,
   },
 
   label: {
-    fontSize: 14,
+    fontSize: 13,
     lineHeight: 20,
     fontWeight: "600",
-    color: "#374151",
   },
 
   otpContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 8,
+    gap: spacing.sm,
     alignSelf: "flex-start",
   },
 
@@ -245,26 +438,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 56,
     borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 12,
-    backgroundColor: "#FFFFFF",
+    borderRadius: radius.md,
     alignItems: "center",
     justifyContent: "center",
-  },
-
-  otpBoxFilled: {
-    borderColor: "#1677FF",
-  },
-
-  otpBoxActive: {
-    borderColor: "#1677FF",
-    borderWidth: 2,
   },
 
   otpText: {
     fontSize: 22,
     fontWeight: "600",
-    color: "#111827",
   },
 
   hiddenInput: {
@@ -275,28 +456,25 @@ const styles = StyleSheet.create({
   },
 
   errorMessage: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#DC2626",
+    fontSize: 12,
+    lineHeight: 18,
   },
 
   verifyButton: {
-    height: 54,
-    borderRadius: 14,
-    backgroundColor: "#1677FF",
+    height: 52,
+    borderRadius: radius.md,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
 
   verifyButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "700",
   },
 
   buttonPressed: {
-    opacity: 0.75,
+    opacity: 0.78,
   },
 
   resendContainer: {
@@ -306,13 +484,33 @@ const styles = StyleSheet.create({
   },
 
   resendText: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: 13,
   },
 
   resendLink: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1677FF",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
+  securityCard: {
+    marginTop: "auto",
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+  },
+
+  securityTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: spacing.xs,
+  },
+
+  securityText: {
+    fontSize: 11,
+    lineHeight: 17,
+  },
+
+  pressed: {
+    opacity: 0.65,
   },
 });
